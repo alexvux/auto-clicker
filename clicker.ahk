@@ -83,9 +83,13 @@ WatchMouseMove(&xPos, &yPos, &ahkId) {
     }
 }
 
+mousePos := winTitle := whichBtn := ""
+clickCnt := interval := clickTimes := 0
+
 CtrlStart.OnEvent("Click", StartClicker)
 
 StartClicker(*) {
+    global
     if(xPos = -1 or yPos = -1 or ahkId = -1) {
         MsgBox("Please get the cursor position first.")
         return
@@ -104,18 +108,32 @@ StartClicker(*) {
     } else {
         SetTimer FiniteClick, interval
     }
+}
 
-    InfiniteClick() {
-        ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+InfiniteClick() {
+    ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+}
+
+FiniteClick() {
+    global
+    if(clickTimes = 0) {
+        SetTimer , 0
+        return
     }
 
-    FiniteClick() {
-        if(clickTimes = 0) {
-            SetTimer , 0
-            return
-        }
-    
-        ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
-        clickTimes--
+    ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+    clickTimes--
+}
+
+CtrlStop.OnEvent("Click", StopClicker)
+
+StopClicker(*) {
+    global
+    clickTimes := CtrlClickTimes.Value
+
+    if(clickTimes = 0) {
+        SetTimer InfiniteClick, 0
+    } else {
+        SetTimer FiniteClick, 0
     }
 }
