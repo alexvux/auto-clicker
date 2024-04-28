@@ -1,15 +1,15 @@
 #SingleInstance Force
+SetControlDelay -1
 
 GuiApp := Gui("AlwaysOnTop", "Auto Clicker")
 
-; Default settings
-Toggle := false
+; Init settings
 MouseOptions := ["Left", "Right"]
 ClickTypeOptions := ["Single", "Double"]
 DefaultInterval := 1000
 DefaultClickTimes := 0
 
-; Click Options
+; Click options
 GuiApp.AddGroupBox("x10 y10 w400 h60", "Click Options")
 GuiApp.AddText("x30 y30", "Mouse button:")
 CtrlMouse := GuiApp.AddDropDownList("x110 y30 w80 Choose1", MouseOptions)
@@ -17,17 +17,17 @@ CtrlMouse := GuiApp.AddDropDownList("x110 y30 w80 Choose1", MouseOptions)
 GuiApp.AddText("x210 y30", "Click type:")
 CtrlClickType := GuiApp.AddDropDownList("x290 y30 w80 Choose1", ClickTypeOptions)
 
-; Interval Options
+; Interval options
 GuiApp.AddGroupBox("x10 y80 w400 h60", "Interval Options")
 GuiApp.AddText("x30 y100", "Interval (ms):")
 CtrlInterval := GuiApp.AddEdit("Number x110 y100 w80", DefaultInterval)
 
 GuiApp.AddText("x210 y100", "Click times:")
 GuiApp.AddText("x210 y115", "(0 = infinite)")
-GuiApp.AddEdit("Number x290 y100 w80")
-CtrlClickTimes := GuiApp.AddUpDown("Range0-10000", DefaultClickTimes)
+CtrlClickTimes := GuiApp.AddEdit("Number x290 y100 w80")
+GuiApp.AddUpDown("Range0-10000", DefaultClickTimes)
 
-; Cursor Position
+; Cursor position
 GuiApp.AddGroupBox("x10 y150 w400 h80", "Cursor Position")
 GuiApp.AddText("x30 y170", "Mouse position: ")
 CtrlMousePos:= GuiApp.AddText("x110 y170 w80", "") ; add mouse pos later
@@ -38,9 +38,9 @@ GuiApp.AddText("x210 y170", "Process name: ")
 CtrlProcessName := GuiApp.AddText("x290 y170 w80", "") ; add process name later
 
 GuiApp.AddText("x210 y195", "Process ID: ")
-CtrlPID := GuiApp.AddText("x290 y195 w80", "") ; add process ID later
+CtrlPID := GuiApp.AddText("x290 y195 w100", "") ; add process ID later
 
-; Control Buttons
+; Control buttons
 CtrlStart := GuiApp.AddButton("x30 y250 w100", "Start (Ctrl F1)")
 CtrlStop := GuiApp.AddButton("x160 y250 w100", "Stop (Ctrl F2)")
 CtrlReset := GuiApp.AddButton("x290 y250 w100", "Reset (Ctrl F3)")
@@ -53,30 +53,66 @@ GuiApp.OnEvent("Close", (*) => ExitApp())
 
 CtrlInterval.OnEvent("Focus", (*) => Send("^a"))
 
+CtrlClickTimes.OnEvent("Focus", (*) => Send("^a"))
+
 CtrlGetCursorPos.OnEvent("Click", GetCursorPos)
 
-x := y := id := 0
-GetCursorPos(Ctrl, Info)
+; Init settings
+toggle := false
+xPos := yPos := ahkId := -1
+
+GetCursorPos(*)
 {
-    SetTimer () => WatchMouseMove(&x, &y, &id), 100
+    global
+    SetTimer () => WatchMouseMove(&xPos, &yPos, &ahkId), 100
 }
 
-WatchMouseMove(&x, &y, &id)
+WatchMouseMove(&xPos, &yPos, &ahkId)
 {
-    MouseGetPos &x, &y, &id
+    MouseGetPos &xPos, &yPos, &ahkId
     ToolTip
     (
-        "Mouse position: " x ", " y
-        "`nProcess name: " WinGetProcessName(id)
-        "`nProcess ID: " WinGetPID(id)
+        "Mouse position: " xPos ", " yPos
+        "`nProcess name: " WinGetProcessName(ahkId)
+        "`nProcess ID: " WinGetPID(ahkId)
     ) 
-
+    
     if (GetKeyState("LButton", "P"))
     {
-        CtrlMousePos.Text := x ", " y
-        CtrlProcessName.Text := WinGetProcessName(id)
-        CtrlPID.Text := WinGetPID(id)
+        CtrlMousePos.Text := xPos ", " yPos
+        CtrlProcessName.Text := WinGetProcessName(ahkId)
+        CtrlPID.Text := WinGetPID(ahkId)
         SetTimer , 0
         ToolTip()
+    }
+}
+
+CtrlStart.OnEvent("Click", StartClicker)
+
+StartClicker(*)
+{
+    if (xPos = -1 or yPos = -1 or ahkId = -1)
+    {
+        MsgBox("Please get the cursor position first.")
+        return
+    }
+
+    ; get current settings then call ControlClick, if it's not infinite, set a loop for stopping
+    mousePos := "x" . xPos . " y" . yPos
+    winTitle := "ahk_id " . ahkId
+    whichBtn := CtrlMouse.Text
+    clickCnt := CtrlClickType.Value
+    interval := CtrlInterval.Value
+    clkTimes := CtrlClickTimes.Value
+
+    if (clkTimes = 0)
+    {
+        SetTimer () => ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA"), interval
+    } else
+    {
+        loop {
+            ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+            Sleep interval
+        } until (A_Index = clkTimes)
     }
 }
