@@ -6,7 +6,7 @@ GuiApp := Gui("AlwaysOnTop", "Auto Clicker")
 ; Init settings
 MouseOptions := ["Left", "Right"]
 ClickTypeOptions := ["Single", "Double"]
-DefaultInterval := 1000
+DefaultInterval := 500
 DefaultClickTimes := 0
 
 ; Click options
@@ -57,18 +57,15 @@ CtrlClickTimes.OnEvent("Focus", (*) => Send("^a"))
 
 CtrlGetCursorPos.OnEvent("Click", GetCursorPos)
 
-; Init settings
-toggle := false
+Toggle := false
 xPos := yPos := ahkId := -1
 
-GetCursorPos(*)
-{
+GetCursorPos(*) {
     global
     SetTimer () => WatchMouseMove(&xPos, &yPos, &ahkId), 100
 }
 
-WatchMouseMove(&xPos, &yPos, &ahkId)
-{
+WatchMouseMove(&xPos, &yPos, &ahkId) {
     MouseGetPos &xPos, &yPos, &ahkId
     ToolTip
     (
@@ -76,9 +73,8 @@ WatchMouseMove(&xPos, &yPos, &ahkId)
         "`nProcess name: " WinGetProcessName(ahkId)
         "`nProcess ID: " WinGetPID(ahkId)
     ) 
-    
-    if (GetKeyState("LButton", "P"))
-    {
+
+    if(GetKeyState("LButton", "P")) {
         CtrlMousePos.Text := xPos ", " yPos
         CtrlProcessName.Text := WinGetProcessName(ahkId)
         CtrlPID.Text := WinGetPID(ahkId)
@@ -89,30 +85,37 @@ WatchMouseMove(&xPos, &yPos, &ahkId)
 
 CtrlStart.OnEvent("Click", StartClicker)
 
-StartClicker(*)
-{
-    if (xPos = -1 or yPos = -1 or ahkId = -1)
-    {
+StartClicker(*) {
+    if(xPos = -1 or yPos = -1 or ahkId = -1) {
         MsgBox("Please get the cursor position first.")
         return
     }
 
-    ; get current settings then call ControlClick, if it's not infinite, set a loop for stopping
+    ; get current settings then call ControlClick
     mousePos := "x" . xPos . " y" . yPos
     winTitle := "ahk_id " . ahkId
     whichBtn := CtrlMouse.Text
     clickCnt := CtrlClickType.Value
     interval := CtrlInterval.Value
-    clkTimes := CtrlClickTimes.Value
+    clickTimes := CtrlClickTimes.Value
 
-    if (clkTimes = 0)
-    {
-        SetTimer () => ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA"), interval
-    } else
-    {
-        loop {
-            ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
-            Sleep interval
-        } until (A_Index = clkTimes)
+    if(clickTimes = 0) {
+        SetTimer InfiniteClick, interval
+    } else {
+        SetTimer FiniteClick, interval
+    }
+
+    InfiniteClick() {
+        ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+    }
+
+    FiniteClick() {
+        if(clickTimes = 0) {
+            SetTimer , 0
+            return
+        }
+    
+        ControlClick(mousePos, winTitle,, whichBtn, clickCnt, "NA")
+        clickTimes--
     }
 }
