@@ -4,48 +4,51 @@ SetControlDelay -1
 GuiApp := Gui("AlwaysOnTop", "Auto Clicker")
 
 ; Init settings
-MouseOptions := ["Left", "Right"]
-ClickTypeOptions := ["Single", "Double"]
+ButtonOptions := ["Left", "Right"]
+ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
-DefaultClickTimes := 0
+DefaultRepeat := 0
 
-; Click options
-GuiApp.AddGroupBox("x10 y10 w400 h60", "Click Options")
-GuiApp.AddText("x30 y30", "Mouse button:")
-CtrlMouse := GuiApp.AddDropDownList("x110 y30 w80 Choose1", MouseOptions)
+; Mouse options
+GuiApp.AddGroupBox("x10 y10 w400 h60", "Mouse Options")
+
+GuiApp.AddText("x30 y30", "Button type:")
+CtrlButtonType := GuiApp.AddDropDownList("x110 y30 w80 Choose1", ButtonOptions)
 
 GuiApp.AddText("x210 y30", "Click type:")
-CtrlClickType := GuiApp.AddDropDownList("x290 y30 w80 Choose1", ClickTypeOptions)
+CtrlClickType := GuiApp.AddDropDownList("x300 y30 w80 Choose1", ClickOptions)
 
-; Interval options
-GuiApp.AddGroupBox("x10 y80 w400 h60", "Interval Options")
+; Timer options
+GuiApp.AddGroupBox("x10 y80 w400 h60", "Timer Options")
+
 GuiApp.AddText("x30 y100", "Interval (ms):")
 CtrlInterval := GuiApp.AddEdit("Number x110 y100 w80", DefaultInterval)
 
-GuiApp.AddText("x210 y100", "Click times:")
-GuiApp.AddText("x210 y115", "(0 = infinite)")
-CtrlClickTimes := GuiApp.AddEdit("Number x290 y100 w80")
-GuiApp.AddUpDown("Range0-10000", DefaultClickTimes)
+GuiApp.AddText("x210 y100", "Repeat (times):`n(0 = infinite)")
+CtrlRepeat := GuiApp.AddEdit("Number x300 y100 w80")
+GuiApp.AddUpDown("Range0-10000", DefaultRepeat)
 
-; Cursor position
-GuiApp.AddGroupBox("x10 y150 w400 h80", "Cursor Position")
-GuiApp.AddText("x30 y170", "Mouse position: ")
-CtrlMousePos:= GuiApp.AddText("x110 y170 w80", "") ; add mouse pos later
+; Cursor information
+GuiApp.AddGroupBox("x10 y150 w400 h80", "Cursor Infomation")
 
-CtrlGetCursorPos := GuiApp.AddButton("x30 y195 w135", "Get cursor position")
+GuiApp.AddText("x30 y170", "Coordinates: ")
+CtrlCursor:= GuiApp.AddText("x110 y170 w80", "")
+
+CtrlGetCursorPos := GuiApp.AddButton("x30 y195 w130", "Get cursor position")
 
 GuiApp.AddText("x210 y170", "Process name: ")
-CtrlProcessName := GuiApp.AddText("x290 y170 w80", "") ; add process name later
+CtrlProcName := GuiApp.AddText("x290 y170 w110", "")
 
 GuiApp.AddText("x210 y195", "Process ID: ")
-CtrlPID := GuiApp.AddText("x290 y195 w100", "") ; add process ID later
+CtrlPID := GuiApp.AddText("x290 y200 w110", "")
 
 ; Control buttons
-CtrlStart := GuiApp.AddButton("x30 y250 w100", "Start (Ctrl F1)")
-CtrlStop := GuiApp.AddButton("x160 y250 w100", "Stop (Ctrl F2)")
-CtrlReset := GuiApp.AddButton("x290 y250 w100", "Reset (Ctrl F3)")
+CtrlStart := GuiApp.AddButton("x30 y250 w100", "Start")
+CtrlStop := GuiApp.AddButton("x160 y250 w100", "Stop")
+CtrlReset := GuiApp.AddButton("x290 y250 w100", "Reset")
 
-GuiApp.Show("w420 h290 x1350 y80") ; position at the top right corner
+TraySetIcon("resources\icon.ico")
+GuiApp.Show("w420 h290 x1350 y80")
 
 ; Handle events
 GuiApp.OnEvent("Escape", (*) => ExitApp())
@@ -53,7 +56,7 @@ GuiApp.OnEvent("Close", (*) => ExitApp())
 
 CtrlInterval.OnEvent("Focus", (*) => Send("^a"))
 
-CtrlClickTimes.OnEvent("Focus", (*) => Send("^a"))
+CtrlRepeat.OnEvent("Focus", (*) => Send("^a"))
 
 CtrlGetCursorPos.OnEvent("Click", GetCursorPos)
 
@@ -75,8 +78,8 @@ WatchMouseMove(&xPos, &yPos, &ahkId) {
     ) 
 
     if(GetKeyState("LButton", "P")) {
-        CtrlMousePos.Text := xPos ", " yPos
-        CtrlProcessName.Text := WinGetProcessName(ahkId)
+        CtrlCursor.Text := xPos ", " yPos
+        CtrlProcName.Text := WinGetProcessName(ahkId)
         CtrlPID.Text := WinGetPID(ahkId)
         SetTimer , 0
         ToolTip()
@@ -98,10 +101,10 @@ StartClicker(*) {
     ; get current settings then call ControlClick
     mousePos := "x" . xPos . " y" . yPos
     winTitle := "ahk_id " . ahkId
-    whichBtn := CtrlMouse.Text
+    whichBtn := CtrlButtonType.Text
     clickCnt := CtrlClickType.Value
     interval := CtrlInterval.Value
-    clickTimes := CtrlClickTimes.Value
+    clickTimes := CtrlRepeat.Value
 
     if(clickTimes = 0) {
         SetTimer InfiniteClick, interval
@@ -129,7 +132,7 @@ CtrlStop.OnEvent("Click", StopClicker)
 
 StopClicker(*) {
     global
-    clickTimes := CtrlClickTimes.Value
+    clickTimes := CtrlRepeat.Value
 
     if(clickTimes = 0) {
         SetTimer InfiniteClick, 0
