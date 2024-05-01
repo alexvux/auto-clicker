@@ -4,7 +4,7 @@ SetControlDelay -1
 MyGui := Gui("AlwaysOnTop", "Auto Clicker")
 
 ; Init settings
-isRunning := false
+Running := false
 ButtonOptions := ["Left", "Right"]
 ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
@@ -53,20 +53,16 @@ Repeat.OnEvent("Focus", (*) => Send("^a"))
 
 GetCursorPos.OnEvent("Click", GetCursorPos_Click)
 GetCursorPos_Click(*) {
-    if(isRunning)
+    if(Running)
         return
-
-    picked := false
+    
     MyGui.Hide()
-    while (not picked) {
-        PickPosition(&picked)
-        Sleep 10
-    }
+    SetTimer PickPosition, 20
 }
 
-PickPosition(&picked) {
-    global xPos, yPos, ahkID, isRunning
-
+PickPosition() {
+    global xPos, yPos, ahkID, Running
+    
     MouseGetPos &xPos, &yPos, &ahkID
     ToolTip(
         "Press 'F2' to get current position:`n"
@@ -76,19 +72,19 @@ PickPosition(&picked) {
     )
 
     if(GetKeyState("F2", "P")) {
-        Coordinates.Value := "" xPos ", " yPos ""
+        Coordinates.Value := xPos ", " yPos
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
         ToolTip()
-        picked := not picked
         MyGui.Show()
+        SetTimer , 0
     }
 }
 
 Start.OnEvent("Click", Start_Click)
 Start_Click(*) {
-    global isRunning
-    if(isRunning)
+    global Running
+    if(Running)
         return
 
     global xPos, yPos, ahkID
@@ -97,8 +93,7 @@ Start_Click(*) {
         return
     }
     
-
-    isRunning := true
+    Running := true
     pos := "x" xPos " y" yPos
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
@@ -110,10 +105,10 @@ Start_Click(*) {
         clickTimes := -1
 
     while(clickTimes != 0) {
-        if(not isRunning)
+        if(not Running)
             return
 
-        ControlClick pos, winTitle, , whichBtn, clickCount, "Pos"
+        ControlClick pos, winTitle, , whichBtn, clickCount, "NA"
         clickTimes--
         Sleep period
     }
@@ -121,13 +116,13 @@ Start_Click(*) {
 
 Stop.OnEvent("Click", Stop_Click)
 Stop_Click(*) {
-    global isRunning := false
+    global Running := false
 }
 
 Reset.OnEvent("Click", Reset_Click)
 Reset_Click(*) {
     global
-    isRunning := false
+    Running := false
     ButtonType.Choose(1)
     ClickType.Choose(1)
     Interval.Value := DefaultInterval
