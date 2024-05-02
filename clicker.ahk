@@ -9,6 +9,7 @@ ButtonOptions := ["Left", "Right"]
 ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
 DefaultClicks := 0
+CurrentClicks := 0
 xPos := yPos := ahkID := -1
 
 ; Mouse options
@@ -22,12 +23,12 @@ ClickType := MyGui.AddDropDownList("x300 y30 w80 Choose1", ClickOptions)
 MyGui.AddGroupBox("x10 y80 w400 h60", "Time Options")
 MyGui.AddText("x30 y100", "Interval (ms):")
 Interval := MyGui.AddEdit("Number x110 y100 w80", DefaultInterval)
-MyGui.AddText("x210 y100", "Click (times):")
-TotalClicks := MyGui.AddEdit("Number x300 y100 w80")
+MyGui.AddText("x210 y100", "Click (times):`n(0: infinite)")
+ClickTimes := MyGui.AddEdit("Number x300 y100 w80")
 MyGui.AddUpDown("Range0-10000", DefaultClicks)
 
 ; Cursor position
-MyGui.AddGroupBox("x10 y150 w400 h85", "Cursor Position")
+MyGui.AddGroupBox("x10 y150 w400 h85", "Clicking Infomation")
 MyGui.AddText("x30 y170", "Coordinates: ")
 Coordinates:= MyGui.AddText("x110 y170 w80", "")
 GetCursorPos := MyGui.AddButton("x30 y195 w140", "Get cursor position")
@@ -52,13 +53,12 @@ MyGui.Show("w420 h290 x1350 y80")
 MyGui.OnEvent("Close", (*) => ExitApp())
 
 Interval.OnEvent("Focus", (*) => Send("^a"))
-TotalClicks.OnEvent("Focus", (*) => Send("^a"))
+ClickTimes.OnEvent("Focus", (*) => Send("^a"))
 
 GetCursorPos.OnEvent("Click", GetCursorPos_Click)
 GetCursorPos_Click(*) {
     if(Running)
         return
-    
     MyGui.Hide()
     SetTimer PickPosition, 20
 }
@@ -73,27 +73,19 @@ PickPosition() {
         "- Process: " WinGetProcessName(ahkID) "`n"
         "- Process ID: " WinGetPID(ahkID)
     )
-
     if(GetKeyState("F2", "P")) {
         Coordinates.Value := xPos ", " yPos
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
-
-        if(TotalClicks.Value != 0)
-            RemainingClicks.Value := TotalClicks.Value
-        else
-            RemainingClicks.Value := "Infinite"
-
-        BackFromPickingPositionToWindow()
+        BackFromPickingPositionToMainWindow()
         return
     }
-    
     if (GetKeyState("Escape", "P")) {
-        BackFromPickingPositionToWindow()
+        BackFromPickingPositionToMainWindow()
     }
 }
 
-BackFromPickingPositionToWindow() {
+BackFromPickingPositionToMainWindow() {
     ToolTip()
     MyGui.Show()
     SetTimer PickPosition, 0 
@@ -101,11 +93,10 @@ BackFromPickingPositionToWindow() {
 
 Start.OnEvent("Click", Start_Click)
 Start_Click(*) {
-    global Running
+    global Running, CurrentClicks, xPos, yPos, ahkID
+    
     if(Running)
         return
-
-    global xPos, yPos, ahkID
     if(xPos = -1 or yPos = -1 or ahkID = -1) {
         MsgBox "Please pick cursor position first!"
         return
@@ -117,25 +108,24 @@ Start_Click(*) {
     whichBtn := ButtonType.Text
     clickCount := ClickType.Value
     period := Interval.Value
-    numOfClicked := TotalClicks.Value
-
-    if(numOfClicked = 0)
-        numOfClicked := -1
-
-    while(numOfClicked != 0) {
+    
+    if(ClickTimes.Value = 0) {
+        CurrentClicks := -1
+        RemainingClicks.Value := "Infinite"
+    } else if(CurrentClicks <= 0){
+        CurrentClicks := ClickTimes.Value
+        RemainingClicks.Value := CurrentClicks
+    }
+    while(CurrentClicks != 0) {
         if(not Running)
             return
-    
         ControlClick pos, winTitle, , whichBtn, clickCount, "NA"
-        numOfClicked--
-
-        if(TotalClicks.Value != 0)
-            RemainingClicks.Value := numOfClicked
-        else
-            RemainingClicks.Value := "Infinite"
-
+        CurrentClicks--
+        if(RemainingClicks.Value != "Infinite")
+            RemainingClicks.Value := CurrentClicks
         Sleep period
     }
+    Running := false
 }
 
 Stop.OnEvent("Click", Stop_Click)
@@ -150,7 +140,7 @@ Reset_Click(*) {
     ButtonType.Choose(1)
     ClickType.Choose(1)
     Interval.Value := DefaultInterval
-    TotalClicks.Value := DefaultClicks
+    ClickTimes.Value := DefaultClicks
     Coordinates.Value := ProcessName.Value := PID.Value := RemainingClicks.Value := ""
     xPos := yPos := ahkID := -1
 }
@@ -174,5 +164,5 @@ F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
-; TODO: continue to click the remaining clicks after stop
 ; TODO: add function to change hotkey of start/stop/reset button
+; TODO: research change setting of text in control
