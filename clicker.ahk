@@ -10,7 +10,7 @@ ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
 DefaultClicks := 0
 CurrentClicks := 0
-xCur := yCur := ahkID := -1
+xCursor := yCursor := ahkID := -1
 
 ; Mouse options
 MyGui.AddGroupBox("x10 y10 w400 h60", "Mouse Options")
@@ -31,7 +31,7 @@ MyGui.AddUpDown("Range0-10000", DefaultClicks)
 MyGui.AddGroupBox("x10 y150 w400 h85", "Clicking Infomation")
 MyGui.AddText("x30 y170", "Coordinates: ")
 Coordinates:= MyGui.AddText("x110 y170 w80", "")
-GetCursorPos := MyGui.AddButton("x30 y195 w140", "Get cursor position")
+GetCursorPos := MyGui.AddButton("x30 y195 w140", "Get Cursor Position")
 MyGui.AddText("x190 y170", "Process name: ")
 ProcessName := MyGui.AddText("x290 y170 w110", "")
 MyGui.AddText("x190 y190", "Process ID: ")
@@ -45,17 +45,14 @@ Stop := MyGui.AddButton("x125 y250 w80", "Stop (F4)")
 Reset := MyGui.AddButton("x220 y250 w80", "Reset (F5)")
 Help := MyGui.AddButton("x315 y250 w80", "Help")
 
-; Position a window at a specific location with a margin from the right and bottom edges of the screen 
-ScreenWidth := A_ScreenWidth
-ScreenHeight := A_ScreenHeight
-windowWidth := 420
-windowHeight := 290
+; Display main window
+wdWidth := 420
+wdHeight := 290
 marginRight := 170
-marginBottom := 700
-xWindow := ScreenWidth - windowWidth - marginRight
-yWindow := ScreenHeight - windowHeight - marginBottom
+xWindow := A_ScreenWidth - wdWidth - marginRight
+yWindow := 90
 
-MyGui.Show("w" windowWidth " h" windowHeight " x" xWindow " y" yWindow)
+MyGui.Show("w" wdWidth " h" wdHeight " x" xWindow " y" yWindow)
 ; MyGui.Show("w420 h290 x1330 y90")
 TraySetIcon("resources/icon.ico")
 
@@ -75,17 +72,17 @@ GetCursorPos_Click(*) {
 }
 
 PickPosition() {
-    global xCur, yCur, ahkID, Running
+    global xCursor, yCursor, ahkID, Running
     
-    MouseGetPos &xCur, &yCur, &ahkID
+    MouseGetPos &xCursor, &yCursor, &ahkID
     ToolTip(
         "Press 'F2' to get current position:`n"
-        "- Coordinates: " xCur ", " yCur "`n"
+        "- Coordinates: " xCursor ", " yCursor "`n"
         "- Process: " WinGetProcessName(ahkID) "`n"
         "- Process ID: " WinGetPID(ahkID) "`n"
     )
     if(GetKeyState("F2", "P")) {
-        Coordinates.Value := xCur ", " yCur
+        Coordinates.Value := xCursor ", " yCursor
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
         BackFromPickingPositionToMainWindow()
@@ -104,17 +101,17 @@ BackFromPickingPositionToMainWindow() {
 
 Start.OnEvent("Click", Start_Click)
 Start_Click(*) {
-    global Running, CurrentClicks, xCur, yCur, ahkID
+    global Running, CurrentClicks, xCursor, yCursor, ahkID
     
     if(Running)
         return
-    if(xCur = -1 or yCur = -1 or ahkID = -1) {
+    if(xCursor = -1 or yCursor = -1 or ahkID = -1) {
         MsgBox "Please pick cursor position first!"
         return
     }
     
     Running := true
-    pos := "x" xCur " y" yCur
+    pos := "x" xCursor " y" yCursor
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
     clickCount := ClickType.Value
@@ -153,19 +150,19 @@ Reset_Click(*) {
     Interval.Value := DefaultInterval
     ClickTimes.Value := DefaultClicks
     Coordinates.Value := ProcessName.Value := PID.Value := RemainingClicks.Value := ""
-    xCur := yCur := ahkID := -1
+    xCursor := yCursor := ahkID := -1
 }
 
 Help.OnEvent("Click", Help_Click)
 Help_Click(*) {
     MsgBox(
-        "- Choose button type and click type of mouse.`n"
-        "- Input interval (in millisecond) and click times (0 means infinite click).`n"
-        "- Click 'Get cursor postion' button to show current position of your cursor`n"
-        "  then press F2 to add it to click settings or 'Esc' to back to main window.`n"
-        "- Click 'Start' or F3 to start auto clicking.`n"
-        "- Click 'Stop' or F4 to stop auto clicking.`n"
-        "- Click 'Reset' or F5 to reset clicking settings.",
+        "- Select the mouse button type and click type.`n"
+        "- Set the interval (in millisecond) and the number of clicks (0 for infinite clicking).`n"
+        "- Use the 'Get cursor postion' button to display the infomation of current cursor position.`n"
+        "  Press F2 to add this to main window or press 'Esc' to return to main window.`n"
+        "- Click 'Start' or F3 to start auto-clicking.`n"
+        "- Click 'Stop' or F4 to stop auto-clicking.`n"
+        "- Click 'Reset' or F5 to clean all clicking settings.",
         "Instructions"
     )
 }
@@ -175,6 +172,5 @@ F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
-; TODO: add function to change hotkey of start/stop/reset button (can save to .ini file)
 ; TODO: disabled button or change appearance text
 ; TODO: research change appearance of text in control
