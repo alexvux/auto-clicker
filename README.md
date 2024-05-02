@@ -1,6 +1,7 @@
 ## Introduce
 Auto Clicker is a compact utility tool that automates mouse clicking without taking control of your cursor. This allows you to continue performing other actions in different application windows while it runs.
 
+![tool image](./resources/gui.png)
 
 ## Instructions
 - Select the mouse button type and click type.
@@ -17,4 +18,4 @@ Some features I might implement in the future:
 - [ ] Add function to customize the default hotkeys.
   - [ ] Save new hotkeys to a .ini file
 
-If you find this tool useful, please consider starring this repo! I would greatly appreciate your support. :D
+If you find this tool useful, please consider starring this repo! I would greatly appreciate your support. 😄
