@@ -10,7 +10,7 @@ ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
 DefaultClicks := 0
 CurrentClicks := 0
-xPos := yPos := ahkID := -1
+xCur := yCur := ahkID := -1
 
 ; Mouse options
 MyGui.AddGroupBox("x10 y10 w400 h60", "Mouse Options")
@@ -45,8 +45,19 @@ Stop := MyGui.AddButton("x125 y250 w80", "Stop (F4)")
 Reset := MyGui.AddButton("x220 y250 w80", "Reset (F5)")
 Help := MyGui.AddButton("x315 y250 w80", "Help")
 
+; Position a window at a specific location with a margin from the right and bottom edges of the screen 
+ScreenWidth := A_ScreenWidth
+ScreenHeight := A_ScreenHeight
+windowWidth := 420
+windowHeight := 290
+marginRight := 170
+marginBottom := 700
+xWindow := ScreenWidth - windowWidth - marginRight
+yWindow := ScreenHeight - windowHeight - marginBottom
+
+MyGui.Show("w" windowWidth " h" windowHeight " x" xWindow " y" yWindow)
+; MyGui.Show("w420 h290 x1330 y90")
 TraySetIcon("resources/icon.ico")
-MyGui.Show("w420 h290 x1350 y80")
 
 ; Handle events
 ; MyGui.OnEvent("Escape", (*) => ExitApp())
@@ -64,17 +75,17 @@ GetCursorPos_Click(*) {
 }
 
 PickPosition() {
-    global xPos, yPos, ahkID, Running
+    global xCur, yCur, ahkID, Running
     
-    MouseGetPos &xPos, &yPos, &ahkID
+    MouseGetPos &xCur, &yCur, &ahkID
     ToolTip(
         "Press 'F2' to get current position:`n"
-        "- Coordinates: " xPos ", " yPos "`n"
+        "- Coordinates: " xCur ", " yCur "`n"
         "- Process: " WinGetProcessName(ahkID) "`n"
-        "- Process ID: " WinGetPID(ahkID)
+        "- Process ID: " WinGetPID(ahkID) "`n"
     )
     if(GetKeyState("F2", "P")) {
-        Coordinates.Value := xPos ", " yPos
+        Coordinates.Value := xCur ", " yCur
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
         BackFromPickingPositionToMainWindow()
@@ -93,17 +104,17 @@ BackFromPickingPositionToMainWindow() {
 
 Start.OnEvent("Click", Start_Click)
 Start_Click(*) {
-    global Running, CurrentClicks, xPos, yPos, ahkID
+    global Running, CurrentClicks, xCur, yCur, ahkID
     
     if(Running)
         return
-    if(xPos = -1 or yPos = -1 or ahkID = -1) {
+    if(xCur = -1 or yCur = -1 or ahkID = -1) {
         MsgBox "Please pick cursor position first!"
         return
     }
     
     Running := true
-    pos := "x" xPos " y" yPos
+    pos := "x" xCur " y" yCur
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
     clickCount := ClickType.Value
@@ -142,20 +153,20 @@ Reset_Click(*) {
     Interval.Value := DefaultInterval
     ClickTimes.Value := DefaultClicks
     Coordinates.Value := ProcessName.Value := PID.Value := RemainingClicks.Value := ""
-    xPos := yPos := ahkID := -1
+    xCur := yCur := ahkID := -1
 }
 
 Help.OnEvent("Click", Help_Click)
 Help_Click(*) {
     MsgBox(
-        "Instructions:`n"
         "- Choose button type and click type of mouse.`n"
         "- Input interval (in millisecond) and click times (0 means infinite click).`n"
         "- Click 'Get cursor postion' button to show current position of your cursor`n"
         "  then press F2 to add it to click settings or 'Esc' to back to main window.`n"
         "- Click 'Start' or F3 to start auto clicking.`n"
         "- Click 'Stop' or F4 to stop auto clicking.`n"
-        "- Click 'Reset' or F5 to reset clicking settings."
+        "- Click 'Reset' or F5 to reset clicking settings.",
+        "Instructions"
     )
 }
 
@@ -164,5 +175,6 @@ F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
-; TODO: add function to change hotkey of start/stop/reset button
-; TODO: research change setting of text in control
+; TODO: add function to change hotkey of start/stop/reset button (can save to .ini file)
+; TODO: disabled button or change appearance text
+; TODO: research change appearance of text in control
