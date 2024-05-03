@@ -1,5 +1,6 @@
 #SingleInstance Force
 SetControlDelay -1
+DetectHiddenWindows true
 
 MyGui := Gui("+AlwaysOnTop", "Auto Clicker")
 
@@ -105,14 +106,18 @@ Start_Click(*) {
     
     if(Running)
         return
+    if(not IsExistedWindow(ahkID)) {
+        MsgBox "The window is not existed anymore!"
+        return
+    }
     if(xCursor = -1 or yCursor = -1 or ahkID = -1) {
         MsgBox "Please pick cursor position first!"
         return
     }
-    
+
     Running := true
     ToggleStartOrStopBtn(Running)
-
+    ; WinActivate "ahk_id " ahkID
     pos := "x" xCursor " y" yCursor
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
@@ -126,9 +131,17 @@ Start_Click(*) {
         CurrentClicks := ClickTimes.Value
         RemainingClicks.Value := CurrentClicks
     }
+
     while(CurrentClicks != 0) {
         if(not Running)
             return
+        if(not IsExistedWindow(ahkID)) {
+            Running := false
+            ToggleStartOrStopBtn(Running)
+            MsgBox "The window is not existed anymore!"
+            return
+        }
+
         ControlClick pos, winTitle, , whichBtn, clickCount, "NA"
         CurrentClicks--
         if(RemainingClicks.Value != "Infinite")
@@ -186,12 +199,15 @@ ToggleStartOrStopBtn(running) {
     Stop.Enabled := !Start.Enabled
 }
 
+IsExistedWindow(id) {
+    return WinExist("ahk_id " id) ? true : false
+}
+
 ; Hotkey settings
 F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
 ; TODO: 
-; split interval into small chunks
 ; test on VQTK
 ; build to .exe file and upload to github
