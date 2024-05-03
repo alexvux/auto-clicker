@@ -2,6 +2,7 @@
 SetControlDelay -1
 DetectHiddenWindows true
 
+TraySetIcon("resources/icon.ico")
 MyGui := Gui("+AlwaysOnTop", "Auto Clicker")
 
 ; Init settings
@@ -55,7 +56,6 @@ yWindow := 90
 
 MyGui.Show("w" wdWidth " h" wdHeight " x" xWindow " y" yWindow)
 ; MyGui.Show("w420 h290 x1330 y90")
-TraySetIcon("resources/icon.ico")
 
 ; Handle events
 ; MyGui.OnEvent("Escape", (*) => ExitApp())
@@ -76,6 +76,7 @@ PickPosition() {
     global xCursor, yCursor, ahkID, Running
     
     MouseGetPos &xCursor, &yCursor, &ahkID
+    WinActivate("ahk_id " ahkID)
     ToolTip(
         "Press 'F2' to get current position:`n"
         "- Coordinates: " xCursor ", " yCursor "`n"
@@ -209,5 +210,6 @@ F4::Stop_Click
 F5::Reset_Click
 
 ; TODO: 
-; test on VQTK
+; hidden window doesn't work
+; test on VQTK failed
 ; build to .exe file and upload to github
