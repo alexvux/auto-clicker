@@ -1,7 +1,7 @@
 #SingleInstance Force
 SetControlDelay -1
 
-MyGui := Gui("AlwaysOnTop", "Auto Clicker")
+MyGui := Gui("+AlwaysOnTop", "Auto Clicker")
 
 ; Init settings
 Running := false
@@ -41,7 +41,7 @@ RemainingClicks := MyGui.AddText("x290 y210 w110", "")
 
 ; Control buttons
 Start := MyGui.AddButton("x30 y250 w80", "Start (F3)")
-Stop := MyGui.AddButton("x125 y250 w80", "Stop (F4)")
+Stop := MyGui.AddButton("x125 y250 w80 +Disabled", "Stop (F4)")
 Reset := MyGui.AddButton("x220 y250 w80", "Reset (F5)")
 Help := MyGui.AddButton("x315 y250 w80", "Help")
 
@@ -111,6 +111,8 @@ Start_Click(*) {
     }
     
     Running := true
+    ToggleStartOrStopBtn(Running)
+
     pos := "x" xCursor " y" yCursor
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
@@ -139,12 +141,14 @@ Start_Click(*) {
 Stop.OnEvent("Click", Stop_Click)
 Stop_Click(*) {
     global Running := false
+    ToggleStartOrStopBtn(Running)
 }
 
 Reset.OnEvent("Click", Reset_Click)
 Reset_Click(*) {
     global
     Running := false
+    ToggleStartOrStopBtn(Running)
     ButtonType.Choose(1)
     ClickType.Choose(1)
     Interval.Value := DefaultInterval
@@ -159,7 +163,7 @@ Help_Click(*) {
         "- Select the mouse button type and click type.`n"
         "- Set the interval (in millisecond) and the number of clicks (0 for infinite clicking).`n"
         "- Use the 'Get cursor postion' button to display the infomation of current cursor position.`n"
-        "  Press F2 to add this to main window or press 'Esc' to return to main window.`n"
+        "  Then press F2 to add this to main window or press 'Esc' to return to main window.`n"
         "- Click 'Start' or F3 to start auto-clicking.`n"
         "- Click 'Stop' or F4 to stop auto-clicking.`n"
         "- Click 'Reset' or F5 to clean all clicking settings.",
@@ -167,10 +171,14 @@ Help_Click(*) {
     )
 }
 
+ToggleStartOrStopBtn(running) {
+    Start.Enabled := running ? false : true
+    Stop.Enabled := !Start.Enabled
+}
+
 ; Hotkey settings
 F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
-; TODO: disabled button or change appearance text
 ; TODO: research change appearance of text in control
