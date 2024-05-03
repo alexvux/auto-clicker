@@ -45,7 +45,7 @@ Stop := MyGui.AddButton("x125 y250 w80 +Disabled", "Stop (F4)")
 Reset := MyGui.AddButton("x220 y250 w80", "Reset (F5)")
 Help := MyGui.AddButton("x315 y250 w80", "Help")
 
-; Display main window
+; Display main window in the top right corner
 wdWidth := 420
 wdHeight := 290
 marginRight := 170
@@ -133,9 +133,19 @@ Start_Click(*) {
         CurrentClicks--
         if(RemainingClicks.Value != "Infinite")
             RemainingClicks.Value := CurrentClicks
-        Sleep period
+        ; Sleep period
+        Delay(period, Running)
     }
     Running := false
+}
+
+Delay(duration, signal) {
+    startTime := A_TickCount
+    while(A_TickCount - startTime < duration) {
+        if(not signal)
+            return
+        Sleep 10
+    }
 }
 
 Stop.OnEvent("Click", Stop_Click)
@@ -181,4 +191,7 @@ F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
 
-; TODO: research change appearance of text in control
+; TODO: 
+; split interval into small chunks
+; test on VQTK
+; build to .exe file and upload to github
