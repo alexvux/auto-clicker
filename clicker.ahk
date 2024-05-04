@@ -22,7 +22,7 @@ Running := false
 ButtonOptions := ["Left", "Right"]
 ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
-DefaultClicks := 0
+DefaultClicks := 500
 CurrentClicks := 0
 xCursor := yCursor := ahkID := -1
 
@@ -88,7 +88,7 @@ PickPosition() {
     global xCursor, yCursor, ahkID, Running
     
     MouseGetPos &xCursor, &yCursor, &ahkID
-    WinActivate("ahk_id " ahkID)
+    WinActivate("ahk_id " ahkID) ; check
     ToolTip(
         "Press 'F2' to get current position:`n"
         "- Coordinates: " xCursor ", " yCursor "`n"
@@ -124,27 +124,22 @@ Start_Click(*) {
         return
     }
     
-    Running := true
-    ChangeStartAndStopBtnState(Running)
-    
     pos := "x" xCursor " y" yCursor
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
     clickCount := ClickType.Value
     period := Interval.Value
-    
-    if(not WinExist(winTitle)) {
-        MsgBox "The window is not existed anymore!"
-        return
-    }
 
     if(ClickTimes.Value = 0) {
         CurrentClicks := -1
         RemainingClicks.Value := "Infinite"
     } else if(CurrentClicks <= 0){
-        CurrentClicks := ClickTimes.Value
+        CurrentClicks := StrReplace(ClickTimes.Value, ",", "")
         RemainingClicks.Value := CurrentClicks
     }
+
+    Running := true
+    ChangeStartAndStopBtnState(Running)
 
     while(CurrentClicks != 0) {
         if(not Running)
@@ -160,7 +155,6 @@ Start_Click(*) {
         CurrentClicks--
         if(RemainingClicks.Value != "Infinite")
             RemainingClicks.Value := CurrentClicks
-        ; Sleep period
         Delay(period, Running)
     }
     Running := false
