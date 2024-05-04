@@ -1,17 +1,20 @@
 ## Introduce
 
-Auto Clicker is a compact utility tool that automates mouse clicking without taking control of your cursor. This allows you to continue performing other actions in different application windows while it runs.
+Auto Clicker is a compact utility tool that automates mouse clicking without controlling your cursor. This allows you to continue performing other actions in different application windows while it runs, even if the target window is covered by another window.
 
 ![gui](./resources/gui.png)
 
 ## Instructions
 
-- Select the mouse button type and click type.
-- Set the interval (in millisecond) and the number of clicks (0 for infinite clicking).
-- Use the 'Get cursor postion' button to display the infomation of current cursor position. Then press F2 to add this to main window or press 'Esc' to return to main window.
-- Click 'Start' or F3 to start auto-clicking.
-- Click 'Stop' or F4 to stop auto-clicking.
-- Click 'Reset' or F5 to clean all clicking settings.
+- How to use:
+	- Click the 'Get Cursor Position' button, move the cursor to the desired position, and then press F2 to save it.
+	- Use the buttons or hotkeys (F3/F4/F5) to control the auto clicker.
+- Note:
+	- Setting 'Click times' to 0 enables infinite clicking.
+	- When picking a position, you can press 'Esc' to return to the main window.
+	- Do not resize your target window or hide/minimize it to the taskbar to ensure it clicks correctly.
+	- In some cases, especially in games, the auto clicker may not work properly or at all.
+
 
 ## Additional features
 
@@ -20,5 +23,6 @@ Some features I might implement in the future:
   - [ ] Add context menu for right-click options.
 - [ ] Add function to customize the default hotkeys.
   - [ ] Save new hotkeys to a .ini file
+- [ ] Add status bar for showing current action of clicker
 
 If you find this tool useful, please consider starring this repo! I would greatly appreciate your support. 😄

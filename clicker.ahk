@@ -1,4 +1,4 @@
-#SingleInstance Force
+#SingleInstance Off
 SetControlDelay -1
 DetectHiddenWindows true
 
@@ -13,7 +13,7 @@ Running := false
 ButtonOptions := ["Left", "Right"]
 ClickOptions := ["Single", "Double"]
 DefaultInterval := 500
-DefaultClicks := 500
+DefaultClicks := 0
 CurrentClicks := 0
 xCursor := yCursor := ahkID := -1
 
@@ -51,13 +51,13 @@ Reset := MyGui.AddButton("x220 y250 w80", "Reset (F5)")
 Help := MyGui.AddButton("x315 y250 w80", "Help")
 
 ; Display main window in the top right corner
-wdWidth := 420
-wdHeight := 290
+wWindow := 420
+hWindow := 290
 marginRight := 170
-xWindow := A_ScreenWidth - wdWidth - marginRight
+xWindow := A_ScreenWidth - wWindow - marginRight
 yWindow := 90
 
-MyGui.Show("w" wdWidth " h" wdHeight " x" xWindow " y" yWindow)
+MyGui.Show("w" wWindow " h" hWindow " x" xWindow " y" yWindow)
 ; MyGui.Show("w420 h290 x1330 y90")
 
 ; Handle events
@@ -124,7 +124,7 @@ Start_Click(*) {
     if(ClickTimes.Value = 0) {
         CurrentClicks := -1
         RemainingClicks.Value := "Infinite"
-    } else if(CurrentClicks <= 0){
+    } else if(CurrentClicks <= 0) {
         CurrentClicks := StrReplace(ClickTimes.Value, ",", "")
         RemainingClicks.Value := CurrentClicks
     }
@@ -180,13 +180,14 @@ Reset_Click(*) {
 Help.OnEvent("Click", Help_Click)
 Help_Click(*) {
     MsgBox(
-        "- Select the mouse button type and click type.`n"
-        "- Set the interval (in millisecond) and the number of clicks (0 for infinite clicking).`n"
-        "- Use the 'Get cursor postion' button to display the infomation of current cursor position.`n"
-        "  Then press F2 to add this to main window or press 'Esc' to return to main window.`n"
-        "- Click 'Start' or F3 to start auto-clicking.`n"
-        "- Click 'Stop' or F4 to stop auto-clicking.`n"
-        "- Click 'Reset' or F5 to clean all clicking settings.",
+        "*** How to use:`n"
+            "- Click the 'Get Cursor Position' button, move the cursor to the desired position, and then press F2 to save it.`n"
+            "- Use the buttons or hotkeys (F3/F4/F5) to control the auto clicker.`n"
+        "*** Note:`n"
+            "- Setting 'Click times' to 0 enables infinite clicking.`n"
+            "- When picking a position, you can press 'Esc' to return to the main window.`n"
+            "- Do not resize your target window or hide/minimize it to the taskbar to ensure it clicks correctly.`n"
+            "- In some cases, especially in games, the auto clicker may not work properly or at all.",
         "Instructions"
     )
 }
@@ -197,8 +198,8 @@ ChangeStartAndStopBtnState(running) {
 }
 
 RequireAdmin() {
-    full_command_line := DllCall("GetCommandLine", "str")
-    if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)")) {
+    fullCommandLine := DllCall("GetCommandLine", "str")
+    if not (A_IsAdmin or RegExMatch(fullCommandLine, " /restart(?!\S)")) {
         try {
             if A_IsCompiled
                 Run '*RunAs "' A_ScriptFullPath '" /restart'
@@ -213,8 +214,3 @@ RequireAdmin() {
 F3::Start_Click
 F4::Stop_Click
 F5::Reset_Click
-
-; TODO: 
-; hidden window doesn't work -> keep window unhide when running auto-clicker
-; test on VQTK failed -> maybe it can not regconize the cursor in game
-; build to .exe file and upload to github
