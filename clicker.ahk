@@ -67,6 +67,12 @@ MyGui.OnEvent("Close", (*) => ExitApp())
 Interval.OnEvent("Focus", (*) => Send("^a"))
 ClickTimes.OnEvent("Focus", (*) => Send("^a"))
 
+ClickTimes.OnEvent("Change", ClickTimes_Change)
+ClickTimes_Change(*) {
+    global CurrentClicks
+    CurrentClicks := StrReplace(ClickTimes.Value, ",", "")
+}
+
 GetCursorPos.OnEvent("Click", GetCursorPos_Click)
 GetCursorPos_Click(*) {
     if(Running)
@@ -173,6 +179,7 @@ Reset_Click(*) {
     ClickType.Choose(1)
     Interval.Value := DefaultInterval
     ClickTimes.Value := DefaultClicks
+    CurrentClicks := 0
     Coordinates.Value := ProcessName.Value := PID.Value := RemainingClicks.Value := ""
     xCursor := yCursor := ahkID := -1
 }
