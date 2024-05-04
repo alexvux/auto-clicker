@@ -3,16 +3,7 @@ SetControlDelay -1
 DetectHiddenWindows true
 
 ; Run as admin
-full_command_line := DllCall("GetCommandLine", "str")
-if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)")) {
-    try {
-        if A_IsCompiled
-            Run '*RunAs "' A_ScriptFullPath '" /restart'
-        else
-            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
-    }
-    ExitApp
-}
+RequireAdmin()
 
 TraySetIcon("resources/icon.ico")
 MyGui := Gui("+AlwaysOnTop", "Auto Clicker")
@@ -162,9 +153,7 @@ Start_Click(*) {
 
 Delay(duration, signal) {
     startTime := A_TickCount
-    while(A_TickCount - startTime < duration) {
-        if(not signal)
-            return
+    while(signal and (A_TickCount - startTime < duration)) {
         Sleep 10
     }
 }
@@ -205,6 +194,19 @@ Help_Click(*) {
 ChangeStartAndStopBtnState(running) {
     Start.Enabled := running ? false : true
     Stop.Enabled := !Start.Enabled
+}
+
+RequireAdmin() {
+    full_command_line := DllCall("GetCommandLine", "str")
+    if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)")) {
+        try {
+            if A_IsCompiled
+                Run '*RunAs "' A_ScriptFullPath '" /restart'
+            else
+                Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+        }
+        ExitApp
+    }
 }
 
 ; Hotkey settings
