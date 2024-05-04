@@ -88,14 +88,14 @@ PickPosition() {
     global xCursor, yCursor, ahkID, Running
     
     MouseGetPos &xCursor, &yCursor, &ahkID
-    WinActivate("ahk_id " ahkID) ; check
     ToolTip(
         "Press 'F2' to get current position:`n"
-        "- Coordinates: " xCursor ", " yCursor "`n"
-        "- Process: " WinGetProcessName(ahkID) "`n"
+        "- Process name: " WinGetProcessName(ahkID) "`n"
         "- Process ID: " WinGetPID(ahkID) "`n"
     )
     if(GetKeyState("F2", "P")) {
+        WinActivate("ahk_id " ahkID) ; check
+        MouseGetPos &xCursor, &yCursor, &ahkID
         Coordinates.Value := xCursor ", " yCursor
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
