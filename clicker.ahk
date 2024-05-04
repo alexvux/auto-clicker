@@ -87,15 +87,15 @@ PickPosition() {
         Coordinates.Value := xCursor ", " yCursor
         ProcessName.Value := WinGetProcessName(ahkID)
         PID.Value := WinGetPID(ahkID)
-        BackFromPickingPositionToMainWindow()
+        StopPickingPosition()
         return
     }
     if (GetKeyState("Escape", "P")) {
-        BackFromPickingPositionToMainWindow()
+        StopPickingPosition()
     }
 }
 
-BackFromPickingPositionToMainWindow() {
+StopPickingPosition() {
     ToolTip()
     MyGui.Show()
     SetTimer PickPosition, 0 
@@ -107,24 +107,25 @@ Start_Click(*) {
     
     if(Running)
         return
-    if(not IsExistedWindow(ahkID)) {
-        MsgBox "The window is not existed anymore!"
-        return
-    }
     if(xCursor = -1 or yCursor = -1 or ahkID = -1) {
         MsgBox "Please pick cursor position first!"
         return
     }
-
+    
     Running := true
-    ToggleStartOrStopBtn(Running)
-    ; WinActivate "ahk_id " ahkID
+    ChangeStartAndStopBtnState(Running)
+    
     pos := "x" xCursor " y" yCursor
     winTitle := "ahk_id " ahkID
     whichBtn := ButtonType.Text
     clickCount := ClickType.Value
     period := Interval.Value
     
+    if(not WinExist(winTitle)) {
+        MsgBox "The window is not existed anymore!"
+        return
+    }
+
     if(ClickTimes.Value = 0) {
         CurrentClicks := -1
         RemainingClicks.Value := "Infinite"
@@ -136,9 +137,9 @@ Start_Click(*) {
     while(CurrentClicks != 0) {
         if(not Running)
             return
-        if(not IsExistedWindow(ahkID)) {
+        if(not WinExist(winTitle)) {
             Running := false
-            ToggleStartOrStopBtn(Running)
+            ChangeStartAndStopBtnState(Running)
             MsgBox "The window is not existed anymore!"
             return
         }
@@ -165,14 +166,14 @@ Delay(duration, signal) {
 Stop.OnEvent("Click", Stop_Click)
 Stop_Click(*) {
     global Running := false
-    ToggleStartOrStopBtn(Running)
+    ChangeStartAndStopBtnState(Running)
 }
 
 Reset.OnEvent("Click", Reset_Click)
 Reset_Click(*) {
     global
     Running := false
-    ToggleStartOrStopBtn(Running)
+    ChangeStartAndStopBtnState(Running)
     ButtonType.Choose(1)
     ClickType.Choose(1)
     Interval.Value := DefaultInterval
@@ -195,13 +196,9 @@ Help_Click(*) {
     )
 }
 
-ToggleStartOrStopBtn(running) {
+ChangeStartAndStopBtnState(running) {
     Start.Enabled := running ? false : true
     Stop.Enabled := !Start.Enabled
-}
-
-IsExistedWindow(id) {
-    return WinExist("ahk_id " id) ? true : false
 }
 
 ; Hotkey settings
@@ -210,6 +207,6 @@ F4::Stop_Click
 F5::Reset_Click
 
 ; TODO: 
-; hidden window doesn't work
-; test on VQTK failed
+; hidden window doesn't work -> keep window unhide when running auto-clicker
+; test on VQTK failed -> maybe it can not regconize the cursor in game
 ; build to .exe file and upload to github
